@@ -28,20 +28,21 @@ app.post("/upload", async (req, res) => {
   // accessing the file
   const myFile = req.files.file;
   //  mv() method places the file inside public directory
-  myFile.mv(`${__dirname}/public/${myFile.name}`, function (err) {
+  myFile.mv(`${__dirname}/public/${myFile.name}`, async function (err) {
     //TODO: checking the type of file
     if (err) {
       console.log(err);
       return res.status(500).send({ msg: "Error occured" });
     }
     //running the script of python
+    await pythonScript(
+        { name: myFile.name, path: `./public/${myFile.name}` },
+        res
+      );
     // returing the response with file path and name
   });
 
-  await pythonScript(
-    { name: myFile.name, path: `./public/${myFile.name}` },
-    res
-  );
+  
 });
 
 app.get("/picture", (req, res) => {
@@ -51,6 +52,10 @@ app.get("/picture", (req, res) => {
 app.get("/csv", (req, res) => {
   res.status(200).sendFile(__dirname + "/output.csv");
 });
+
+app.get("/", (req, res) => {
+    res.body = "hello world my csv backend";
+  });
 
 app.listen(8000, () => {
   console.log("server is running at port 8000");
