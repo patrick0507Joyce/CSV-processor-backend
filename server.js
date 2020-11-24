@@ -2,6 +2,7 @@ const express = require("express");
 const fileUpload = require("express-fileupload");
 const cors = require("cors");
 const { spawn } = require("child_process");
+var exec = require("child_process").exec;
 const app = express();
 
 // middle ware
@@ -11,7 +12,19 @@ app.use(fileUpload());
 
 const pythonScript = (req, res) => {
   console.log(req);
-  const script = spawn("python", ["main.py", req.path]);
+  const script = exec(`python main.py ${req.path}`, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`exec error: ${error}`);
+      return res.status(500).send({ msg: "Error occured" });
+    }
+    console.log(`stdout: ${stdout}`);
+    if (stderr) {
+      console.log(`stderr: ${stderr}`);
+      return res.status(500).send({ msg: "Error occured" });
+    }
+  });
+
+  script.stdout.on("data", (data) => {});
 
   script.on("close", (code) => {
     console.log(`child process close all stdio with code ${code}`);
@@ -36,13 +49,11 @@ app.post("/upload", async (req, res) => {
     }
     //running the script of python
     await pythonScript(
-        { name: myFile.name, path: `./public/${myFile.name}` },
-        res
-      );
+      { name: myFile.name, path: `./public/${myFile.name}` },
+      res
+    );
     // returing the response with file path and name
   });
-
-  
 });
 
 app.get("/picture", (req, res) => {
@@ -54,8 +65,8 @@ app.get("/csv", (req, res) => {
 });
 
 app.get("/", (req, res) => {
-    res.send('Hello World!');
-  });
+  res.send("Hello World!");
+});
 
 app.listen(process.env.PORT || 8000, () => {
   console.log("server is running at port 8000");
