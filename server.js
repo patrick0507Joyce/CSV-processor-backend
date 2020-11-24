@@ -54,7 +54,7 @@ app.get("/csv", (req, res) => {
 });
 
 app.get("/", (req, res) => {
-    res.body = "hello world my csv backend";
+    res.send('Hello World!');
   });
 
 app.listen(8000, () => {
